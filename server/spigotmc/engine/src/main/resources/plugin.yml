@@ -1,0 +1,17 @@
+name: MCEngineLang
+main: io.github.mcengine.spigotmc.lang.engine.MCEngineLangSpigotMC
+version: ${version}
+api-version: '1.20'
+author: MCEngine
+commands:
+  lang:
+    description: Manage and change your language preference
+    usage: /lang [set|change] <lang>
+    permission: mcengine.lang.use
+permissions:
+  mcengine.lang.use:
+    default: true
+  mcengine.lang.set:
+    default: true
+  mcengine.lang.change:
+    default: true

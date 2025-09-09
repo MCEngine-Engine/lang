@@ -1,0 +1,229 @@
+Create new spigot and paper class with our lang update.
+use these code as example
+"
+package io.github.mcengine.papermc.identity.engine;
+
+import io.github.mcengine.api.core.MCEngineCoreApi;
+import io.github.mcengine.api.core.Metrics;
+import io.github.mcengine.common.identity.MCEngineIdentityCommon;
+import io.github.mcengine.common.identity.command.MCEngineIdentityCommand;
+import io.github.mcengine.common.identity.listener.MCEngineIdentityListener;
+import io.github.mcengine.common.identity.tabcompleter.MCEngineIdentityTabCompleter;
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * Main PaperMC plugin class for MCEngineIdentity.
+ */
+public class MCEngineIdentityPaperMC extends JavaPlugin {
+
+    /**
+     * Identity common API instance that wires the Bukkit plugin
+     * to the selected database implementation and exposes
+     * identity/alt operations and async pools.
+     */
+    private MCEngineIdentityCommon api;
+
+    /**
+     * Called when the plugin is enabled.
+     */
+    @Override
+    public void onEnable() {
+        new Metrics(this, 27167);
+        saveDefaultConfig(); // Save config.yml if it doesn't exist
+
+        boolean enabled = getConfig().getBoolean("enable", false);
+        if (!enabled) {
+            getLogger().warning("Plugin is disabled in config.yml (enable: false). Disabling plugin...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        final String licenseType = getConfig().getString("license", "free");
+        if (!"free".equalsIgnoreCase(licenseType)) {
+            getLogger().warning("License is not 'free'. Disabling MCEngineIdentity.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        api = new MCEngineIdentityCommon(this);
+
+        // Register command executor
+        if (getCommand("identity") != null) {
+            getCommand("identity").setExecutor(new MCEngineIdentityCommand(api));
+            getCommand("identity").setTabCompleter(new MCEngineIdentityTabCompleter(api));
+        } else {
+            getLogger().warning("Command 'identity' not found in plugin.yml");
+        }
+
+        // Register listener to ensure {uuid}-0 alt exists on join
+        getServer().getPluginManager().registerEvents(new MCEngineIdentityListener(api), this);
+
+        // Load extensions (kept unchanged in structure, but swapped to identity namespaces)
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.library.IMCEngineIdentityLibrary",
+            "libraries",
+            "Library"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.api.IMCEngineIdentityAPI",
+            "apis",
+            "API"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.agent.IMCEngineIdentityAgent",
+            "agents",
+            "Agent"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.addon.IMCEngineIdentityAddOn",
+            "addons",
+            "AddOn"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.dlc.IMCEngineIdentityDLC",
+            "dlcs",
+            "DLC"
+        );
+
+        // Check for plugin updates
+        MCEngineCoreApi.checkUpdate(
+            this,
+            getLogger(),
+            "github",
+            "MCEngine-Engine",
+            "identity",
+            getConfig().getString("github.token", "null")
+        );
+    }
+
+    /**
+     * Called when the plugin is disabled.
+     */
+    @Override
+    public void onDisable() {
+        // Ensure background executors are stopped cleanly.
+        if (api != null) {
+            api.shutdownAsyncPools();
+        }
+    }
+}
+"
+"
+package io.github.mcengine.spigotmc.identity.engine;
+
+import io.github.mcengine.api.core.MCEngineCoreApi;
+import io.github.mcengine.api.core.Metrics;
+import io.github.mcengine.common.identity.MCEngineIdentityCommon;
+import io.github.mcengine.common.identity.command.MCEngineIdentityCommand;
+import io.github.mcengine.common.identity.listener.MCEngineIdentityListener;
+import io.github.mcengine.common.identity.tabcompleter.MCEngineIdentityTabCompleter;
+import org.bukkit.plugin.java.JavaPlugin;
+
+/**
+ * Main SpigotMC plugin class for MCEngineIdentity.
+ */
+public class MCEngineIdentitySpigotMC extends JavaPlugin {
+
+    /**
+     * Identity common API instance that wires the Bukkit plugin
+     * to the selected database implementation and exposes
+     * identity/alt operations and async pools.
+     */
+    private MCEngineIdentityCommon api;
+
+    /**
+     * Called when the plugin is enabled.
+     */
+    @Override
+    public void onEnable() {
+        new Metrics(this, 27167);
+        saveDefaultConfig(); // Save config.yml if it doesn't exist
+
+        boolean enabled = getConfig().getBoolean("enable", false);
+        if (!enabled) {
+            getLogger().warning("Plugin is disabled in config.yml (enable: false). Disabling plugin...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        final String licenseType = getConfig().getString("license", "free");
+        if (!"free".equalsIgnoreCase(licenseType)) {
+            getLogger().warning("License is not 'free'. Disabling MCEngineIdentity.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        api = new MCEngineIdentityCommon(this);
+
+        // Register command executor
+        if (getCommand("identity") != null) {
+            getCommand("identity").setExecutor(new MCEngineIdentityCommand(api));
+            getCommand("identity").setTabCompleter(new MCEngineIdentityTabCompleter(api));
+        } else {
+            getLogger().warning("Command 'identity' not found in plugin.yml");
+        }
+
+        // Register listener to ensure {uuid}-0 alt exists on join
+        getServer().getPluginManager().registerEvents(new MCEngineIdentityListener(api), this);
+
+        // Load extensions (kept unchanged in structure, but swapped to identity namespaces)
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.library.IMCEngineIdentityLibrary",
+            "libraries",
+            "Library"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.api.IMCEngineIdentityAPI",
+            "apis",
+            "API"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.agent.IMCEngineIdentityAgent",
+            "agents",
+            "Agent"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.addon.IMCEngineIdentityAddOn",
+            "addons",
+            "AddOn"
+        );
+        MCEngineCoreApi.loadExtensions(
+            this,
+            "io.github.mcengine.api.identity.extension.dlc.IMCEngineIdentityDLC",
+            "dlcs",
+            "DLC"
+        );
+
+        // Check for plugin updates
+        MCEngineCoreApi.checkUpdate(
+            this,
+            getLogger(),
+            "github",
+            "MCEngine-Engine",
+            "identity",
+            getConfig().getString("github.token", "null")
+        );
+    }
+
+    /**
+     * Called when the plugin is disabled.
+     */
+    @Override
+    public void onDisable() {
+        // Ensure background executors are stopped cleanly.
+        if (api != null) {
+            api.shutdownAsyncPools();
+        }
+    }
+}
+"
+Give me both entire file. fix class name and path too. Change to Lang.

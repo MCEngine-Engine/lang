@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT'
+
+    implementation 'io.github.mcengine:core-api:2025.0.9-9'
+    implementation 'io.github.mcengine:lang-api:2025.0.9-0'
+    implementation 'io.github.mcengine:lang-common:2025.0.9-1'
+}
+
+processResources {
+    def props = [version: version]
+    inputs.properties(props)
+    filteringCharset 'UTF-8'
+    filesMatching('plugin.yml') {
+        expand(props)
+    }
+}
+
+shadowJar {
+    archiveBaseName = "${project.jarName}-PaperMC"
+}
+
+build.dependsOn shadowJar

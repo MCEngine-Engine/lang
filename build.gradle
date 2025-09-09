@@ -1,0 +1,120 @@
+plugins {
+    id 'com.gradleup.shadow' version '9.1.0'
+    id 'java'
+}
+
+// Set project version using a property, defaulting to 'unspecified' if not found
+version = project.properties[project.name + '.version']
+group = 'io.github.mcengine'
+
+ext {
+    // User
+    user_git_name = System.getenv('USER_GIT_NAME')
+
+    // GitHub
+    user_github_token = System.getenv('USER_GITHUB_TOKEN')
+
+    // Organization
+    organization_name = System.getenv('ORGANIZATION_NAME') ?: 'MCEngine-Engine'
+    organization_token = System.getenv('ORGANIZATION_TOKEN')
+
+    // Repository
+    repository_name = System.getenv('REPOSITORY_NAME') ?: 'lang'
+    repository_token = System.getenv('REPOSITORY_TOKEN')
+
+    /* Project Information */
+    jarName = System.getenv('PROJECT_NAME') ?: "MCEngine${repository_name.capitalize()}"
+}
+
+allprojects {
+    group = 'io.github.mcengine'
+
+    apply plugin: 'java'
+    apply plugin: 'com.gradleup.shadow'
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+
+        maven {
+            url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
+            content {
+                includeGroup 'org.bukkit'
+                includeGroup 'org.spigotmc'
+            }
+        }
+
+        maven {
+            name = "papermc"
+            url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'https://oss.sonatype.org/content/repositories/central' }
+
+        ext.configureGitHubRepo = { repoName, repoUrl ->
+            maven {
+                name = repoName
+                url = uri(repoUrl)
+                credentials {
+                    username = user_git_name
+                    password = user_github_token ?: repository_token ?: organization_token
+                }
+            }
+        }
+
+        configureGitHubRepo('MCEngine Core API', 'https://maven.pkg.github.com/MCEngine-API/core')
+        configureGitHubRepo('MCEngine Lang API', 'https://maven.pkg.github.com/MCEngine-API/lang')
+        configureGitHubRepo('MCEngine Lang Common', 'https://maven.pkg.github.com/MCEngine-Common/lang')
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'com.gradleup.shadow'
+
+    version = findProperty("mcengine-${repository_name}.version")
+
+    tasks.named('jar').configure {
+        enabled = false
+    }
+
+    tasks.named('shadowJar').configure {
+        archiveClassifier = null
+    }
+
+    afterEvaluate {
+        def serverPlatforms = ['spigotmc', 'papermc']
+        serverPlatforms.each { platform ->
+            if (path == ":server:${platform}:engine") {
+                def platformDir = file("${rootDir}/server/${platform}")
+                if (platformDir.exists()) {
+                    dependencies {
+                        // Add versioned platform projects with 'shadow' configuration
+                        platformDir.eachDir { versionDir ->
+                            if (versionDir.name != 'engine') {
+                                def versionPath = ":server:${platform}:${versionDir.name}"
+                                def versionProject = findProject(versionPath)
+                                if (versionProject != null) {
+                                    implementation project(path: versionPath, configuration: "shadow")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+shadowJar {
+    version = version
+    archiveClassifier = null
+    archiveBaseName = jarName
+}
+
+tasks.named('jar').configure {
+    enabled = false
+}
+
+build.dependsOn(shadowJar)
