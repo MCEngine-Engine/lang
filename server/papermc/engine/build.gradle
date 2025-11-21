@@ -5,9 +5,9 @@ plugins {
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT'
 
-    implementation 'io.github.mcengine:core-api:2025.1.1-18'
-    implementation 'io.github.mcengine:lang-api:2025.1.1-18'
-    implementation 'io.github.mcengine:lang-common:2025.1.1-18'
+    implementation 'io.github.mcengine:core-api:2025.1.1-22'
+    implementation 'io.github.mcengine:lang-api:2025.1.1-22'
+    implementation 'io.github.mcengine:lang-common:2025.1.1-22'
 }
 
 processResources {
